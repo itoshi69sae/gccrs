@@ -36,23 +36,23 @@ PrivacyReporter::PrivacyReporter (
 
 // Find a proc_macro, proc_macro_derive or proc_macro_attribute
 // attribute in a vector of attribute
-static tl::optional<std::string>
-find_proc_macro_attribute (const AST::AttrVec &outer_attrs)
-{
-  for (auto &a : outer_attrs)
-    {
-      auto &segments = a.get_path ().get_segments ();
-      if (segments.size () != 1)
-	continue;
-      auto name = segments.at (0).get_segment_name ();
-      if (name == Values::Attributes::PROC_MACRO
-	  || name == Values::Attributes::PROC_MACRO_ATTRIBUTE
-	  || name == Values::Attributes::PROC_MACRO_DERIVE)
-	return name;
-    }
+// static tl::optional<std::string>
+// find_proc_macro_attribute (const AST::AttrVec &outer_attrs)
+// {
+//   for (auto &a : outer_attrs)
+//     {
+//       auto &segments = a.get_path ().get_segments ();
+//       if (segments.size () != 1)
+// 	continue;
+//       auto name = segments.at (0).get_segment_name ();
+//       if (name == Values::Attributes::PROC_MACRO
+// 	  || name == Values::Attributes::PROC_MACRO_ATTRIBUTE
+// 	  || name == Values::Attributes::PROC_MACRO_DERIVE)
+// 	return name;
+//     }
 
-  return tl::nullopt;
-}
+//   return tl::nullopt;
+// }
 
 // Common check on crate items when dealing with 'proc-macro' crate type.
 static void
@@ -60,8 +60,14 @@ proc_macro_privacy_check (std::unique_ptr<HIR::Item> &item)
 {
   if (item->get_hir_kind () == HIR::Node::BaseKind::VIS_ITEM)
     {
-      auto attribute = find_proc_macro_attribute (item->get_outer_attrs ());
-
+      tl::optional<std::string> attribute = tl::nullopt ;
+      //find_proc_macro_attribute (item->get_outer_attrs ())
+      for(auto &attr : item->get_outer_attrs()){
+        if(Analysis::is_proc_macro_attribute(attr)!=tl::nullopt){
+          attribute = Analysis::is_proc_macro_attribute(attr);
+          break;
+        }
+      }
       bool pub_item = static_cast<HIR::VisItem *> (item.get ())
 			->get_visibility ()
 			.is_public ();
